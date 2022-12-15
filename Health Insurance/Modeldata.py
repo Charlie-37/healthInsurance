@@ -113,7 +113,7 @@ class HealthInsuranceModel():
     def fetched_static_data(self,sr_no):
         db = self.dbConnect()
         cr = db.cursor()
-        cr.execute('Select Insurer_Name,Insurance_Plan,Age_Range,Cover_Plan from fetcheddata where sr_no ='+str(sr_no))
+        cr.execute('Select Insurer_Name,Insurance_Plan,Age_Range,Cover_Plan, sr_no from fetcheddata where sr_no ='+str(sr_no))
         data = cr.fetchall()
         return data[0]
     
@@ -126,32 +126,30 @@ class HealthInsuranceModel():
         cr = db.cursor()
         cr.execute('SELECT brand_existence,rating from rational_rating' )
         data = cr.fetchall()
-        # print(data)
+
         flag = False
-        for i in range(len(data)):
-            # print(i[0])
-            
+        rating = 0
+        for i in range(len(data)):    
             year_range = data[i][0].split('-')
-            # print(year_range)
-            # print(len(year_range))
             
             if len(year_range) == 1:
-                # print(year_range[0][1:])
                 if int(year_range[0][1:]) <= brand_existence:
                     flag = True
+                    rating = data[i][1]
             elif len(year_range) == 2:
-                year_range[0] = int(year_range[0])
-                year_range[1] = int(year_range[1])
+                # year_range[0] = int(year_range[0])
+                # year_range[1] = int(year_range[1])
                 # print(year_range[0],year_range[1],brand_existence)
-                if brand_existence >= year_range[0] and  brand_existence <= year_range[1]:
+                
+                if brand_existence >= int(year_range[0]) and  brand_existence <= int(year_range[1]):
                     flag = True
-                    
-                    # print(data[i][1])
-        
-        # print(rating)  
-                    return data[i][1]
-                    
-            
+                    # return data[i][1]
+                    rating = data[i][1]
+          
+        if flag == True:        
+            return rating
+        else:
+            return 'Not_Available'
                 
                     
                 
@@ -164,6 +162,7 @@ class HealthInsuranceModel():
         m_list = []
         for i in f_data:    
             static_data = self.fetched_static_data(i[0])
+            sr_no = static_data[4]
             i_name = static_data[0]
             i_plan = static_data[1]
             age_range = static_data[2]
@@ -175,6 +174,7 @@ class HealthInsuranceModel():
 
             
             m_dict = {
+                'Sr No' : sr_no,
                 'Insurer_Name' : i_name,
                 'Insurance_Plan' : i_plan,
                 'Age Range' : age_range,
@@ -186,11 +186,12 @@ class HealthInsuranceModel():
             
             
         for j in m_list:
-            print(j)
+            print(j['Sr No'],j['Brand Existance Rating'])
+            
 
    
          
-obj1 = HealthInsuranceModel('50 Lacs',23)
+obj1 = HealthInsuranceModel('10 Lacs',23)
 obj1.model_data()
 
         
