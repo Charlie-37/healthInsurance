@@ -33,7 +33,7 @@ class HealthInsuranceModel():
         #//* Getting Master Data from DataBase
         db  = self.dbConnect()
         cr = db.cursor()
-        cr.execute('''select * from masterdata;''')
+        cr.execute('''select * from masterdata ORDER BY sr_no;''')
         df_list = cr.fetchall()
         db.commit()
         db.close()
@@ -113,8 +113,10 @@ class HealthInsuranceModel():
     def fetched_static_data(self,sr_no):
         db = self.dbConnect()
         cr = db.cursor()
-        cr.execute('Select Insurer_Name,Insurance_Plan,Age_Range,Cover_Plan, sr_no from fetcheddata where sr_no ='+str(sr_no))
+        cr.execute('Select Insurer_Name,Insurance_Plan,Age_Range,Cover_Plan, sr_no from fetcheddata where sr_no ='+str(sr_no)+';')
         data = cr.fetchall()
+        db.commit()
+        db.close()
         return data[0]
     
 
@@ -124,23 +126,24 @@ class HealthInsuranceModel():
         brand_existence = int(brand_existence)
         db = self.dbConnect()
         cr = db.cursor()
-        cr.execute('SELECT brand_existence,rating from rational_rating' )
+        cr.execute('SELECT brand_existence,rating from rational_rating;' )
         data = cr.fetchall()
-
+        db.commit()
+        db.close()
+        #//* flag is used that the check if range is satisfied by the given year
         flag = False
         rating = 0
-        for i in range(len(data)):    
+        for i in range(len(data)): 
+            
+            # //*fetched out the two years from brand exis. range   
             year_range = data[i][0].split('-')
             
+            # //*if age range is of single year
             if len(year_range) == 1:
                 if int(year_range[0][1:]) <= brand_existence:
                     flag = True
                     rating = data[i][1]
-            elif len(year_range) == 2:
-                # year_range[0] = int(year_range[0])
-                # year_range[1] = int(year_range[1])
-                # print(year_range[0],year_range[1],brand_existence)
-                
+            elif len(year_range) == 2:                
                 if brand_existence >= int(year_range[0]) and  brand_existence <= int(year_range[1]):
                     flag = True
                     # return data[i][1]
@@ -151,10 +154,56 @@ class HealthInsuranceModel():
         else:
             return 'Not_Available'
                 
-                    
+    # //*------------Product Existance Data----------------------*//  
+    
+    def Product_Existence_Rating(self,product_existence):
+        product_existence = int(product_existence)
+        db = self.dbConnect()
+        cr = db.cursor()
+        cr.execute('''SELECT product_existence,rating from rational_rating; '''  )
+        data = cr.fetchall()
+
+        db.commit()
+        db.close()
+        
+        #//*--Same logic as above brand existance function
+        flag = False
+        rating = 0
+        for i in range(len(data)):    
+            year_range = data[i][0].split('-')
+            
+            if len(year_range) == 1:
+                if int(year_range[0][1:]) <= product_existence:
+                    flag = True
+                    rating = data[i][1]
+            elif len(year_range) == 2:                
+                if product_existence >= int(year_range[0]) and  product_existence <= int(year_range[1]):
+                    flag = True
+                    # return data[i][1]
+                    rating = data[i][1]
+          
+        if flag == True:        
+            return rating
+        else:
+            return 'Not_Available'                    
                 
 
+    # //*------------Room Rent Data----------------------*//   
     
+    def RoomRent(self,cover_plan,rrData):
+        db = self.dbConnect()
+        cr = db.cursor()    
+        print(cover_plan,rrData)
+        
+        tpl = (cover_plan,rrData)
+        sql = f'Select ratings from room_rent_rating where sum_insured = "{cover_plan}" and keywords = "{rrData}";'
+        cr.execute(sql)
+        
+        data = cr.fetchall()
+        
+        db.commit()
+        db.close()
+        return data
     
     # //*------------Final Model Data----------------------*//    
     def model_data(self):
@@ -169,6 +218,9 @@ class HealthInsuranceModel():
             cover_plan = static_data[3]
             
             brand_existance_rating = self.Brand_Existence_Rating(i[2])
+            product_existance_rating = self.Product_Existence_Rating(i[5])
+            room_rent = self.RoomRent(i[6],i[9])
+            print(room_rent)
             # print(i[2],brand_existance_rating)
 
 
@@ -180,13 +232,14 @@ class HealthInsuranceModel():
                 'Age Range' : age_range,
                 'Cover Plan' : cover_plan,
                 'Brand Existance Rating' : brand_existance_rating,
+                'Product_Existence_Rating' : product_existance_rating,
                 
             }
             m_list.append(m_dict)
             
             
-        for j in m_list:
-            print(j['Sr No'],j['Brand Existance Rating'])
+        # for j in m_list:
+        #     print(j['Sr No'],j['Product_Existence_Rating'])
             
 
    
