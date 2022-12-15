@@ -508,15 +508,16 @@ class HealthInsuranceDB():
    
          
 obj1 = HealthInsuranceDB()
-# obj1.addMaster('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','MasterData')
-# obj1.addRoomRent('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','Room Rent')
-# obj1.addPreExistingDisease('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','Pre-Existing Disease')
-# obj1.addRechargeOfSI('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','Recharge of SI')
-# obj1.addRationalRating('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','SQL_R')
-# obj1.addCoPay('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','Co-Pay')
-# obj1.addWeightage('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','Weightage')
-# obj1.addProsCons('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','Pros and Cons')
-# obj1.addNCB('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','NCB')
-obj1.addHealthAndWellness('D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx','Health and Wellness')
+path = 'D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx'
+# obj1.addMaster(path,'MasterData')
+# obj1.addRoomRent(path,'Room Rent')
+# obj1.addPreExistingDisease(path,'Pre-Existing Disease')
+# obj1.addRechargeOfSI(path,'Recharge of SI')
+# obj1.addRationalRating(path,'SQL_R')
+# obj1.addCoPay(path,'Co-Pay')
+# obj1.addWeightage(path,'Weightage')
+# obj1.addProsCons(path,'Pros and Cons')
+# obj1.addNCB(path,'NCB')
+obj1.addHealthAndWellness(path,'Health and Wellness')
         
         
