@@ -107,6 +107,7 @@ class HealthInsuranceModel():
                 return None         
         # for i in f_val:
         #     print(i[0],i[1],i[2])
+        # print(f_val)
         return (f_val)
     
     # //*------To Find Insurar Name, Insurar Plan, Age Group, Cover Plan ----*//
@@ -192,18 +193,18 @@ class HealthInsuranceModel():
     
     def RoomRent(self,cover_plan,rrData):
         db = self.dbConnect()
-        cr = db.cursor()    
-        print(cover_plan,rrData)
-        
+        cr = db.cursor()  
         tpl = (cover_plan,rrData)
-        sql = f'Select ratings from room_rent_rating where sum_insured = "{cover_plan}" and keywords = "{rrData}";'
-        cr.execute(sql)
+        sql = ''' select ratings from room_rent_rating where sum_insured =%s and keywords = %s;'''
+        cr.execute(sql,tpl)
         
-        data = cr.fetchall()
-        
+        data = cr.fetchone()        
         db.commit()
         db.close()
+        
         return data
+        
+
     
     # //*------------Final Model Data----------------------*//    
     def model_data(self):
@@ -220,8 +221,12 @@ class HealthInsuranceModel():
             brand_existance_rating = self.Brand_Existence_Rating(i[2])
             product_existance_rating = self.Product_Existence_Rating(i[5])
             room_rent = self.RoomRent(i[6],i[9])
-            print(room_rent)
-            # print(i[2],brand_existance_rating)
+            
+            if room_rent == None:
+                room_rent = 'Not_Available'
+            else:
+                room_rent = room_rent[0]
+
 
 
             
@@ -233,18 +238,20 @@ class HealthInsuranceModel():
                 'Cover Plan' : cover_plan,
                 'Brand Existance Rating' : brand_existance_rating,
                 'Product_Existence_Rating' : product_existance_rating,
+                'room_rent_rating' : room_rent,
                 
             }
             m_list.append(m_dict)
             
             
-        # for j in m_list:
-        #     print(j['Sr No'],j['Product_Existence_Rating'])
+        for j in m_list:
+            print(j['Sr No'],j['Product_Existence_Rating'],j['room_rent_rating'])
             
 
    
          
 obj1 = HealthInsuranceModel('10 Lacs',23)
+# obj1.CoverPlan()
 obj1.model_data()
 
         

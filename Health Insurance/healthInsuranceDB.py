@@ -103,6 +103,15 @@ class HealthInsuranceDB():
         db  = self.dbConnect()
         cr = db.cursor()
         for i in df_list:
+            # j = []
+            # for k in i:
+            #     if isinstance(k,str):
+            #         k = k.lower()
+            #         j.append(k)
+            #     else:
+            #         j.append(k)
+                    
+            # j = tuple(j)
             sql = '''Insert into MasterData values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
             cr.execute(sql,i)
         db.commit()
@@ -117,7 +126,7 @@ class HealthInsuranceDB():
         df_list = list(df.itertuples(index=False, name=None))
 
         cl_name = list(df.columns)
-        print(cl_name)
+        # print(cl_name)
         self.UTF8_Error_Handling()
         
         #//* SQL Query to insert the Room-Rent Data Frame to DataBase 
@@ -145,9 +154,29 @@ class HealthInsuranceDB():
         
         db  = self.dbConnect()
         cr = db.cursor()
-        for i in df_list:
+        for i in range (len(df_list)):
+            k = list()            
+            for j in range (len(df_list[i])):
+                if j == 2:
+                    cp = df_list[i][j].strip()
+                    k.append(cp)
+                    
+                else:
+                    l = df_list[i][j]
+                    k.append(l)
+            k = tuple(k)
+            
+            # m = []
+            # for n in df_list[i]:
+            #     if isinstance(n,str):
+            #         n = n.lower()
+            #         m.append(n)
+            #     else:
+            #         m.append(n)
+                    
+            # m = tuple(m)
             sql = '''Insert into room_rent_rating values(%s,%s,%s,%s,%s)'''
-            cr.execute(sql,i)
+            cr.execute(sql,k)
         db.commit()
         db.close()
         
@@ -348,7 +377,7 @@ class HealthInsuranceDB():
         sql ='''CREATE TABLE weightage(  
         Sno integer,
         Parameters Varchar,
-        "Weightage (%)" Integer
+        "Weightage (%)" decimal
         )'''
         cr.execute(sql)
         print("Table created successfully........")
@@ -509,15 +538,15 @@ class HealthInsuranceDB():
          
 obj1 = HealthInsuranceDB()
 path = 'D:\Atrina\Health Insurance\Excel Sheet\HI_DATA(13-12-2022).xlsx'
-# obj1.addMaster(path,'MasterData')
-# obj1.addRoomRent(path,'Room Rent')
-# obj1.addPreExistingDisease(path,'Pre-Existing Disease')
-# obj1.addRechargeOfSI(path,'Recharge of SI')
-# obj1.addRationalRating(path,'SQL_R')
-# obj1.addCoPay(path,'Co-Pay')
-# obj1.addWeightage(path,'Weightage')
-# obj1.addProsCons(path,'Pros and Cons')
-# obj1.addNCB(path,'NCB')
+obj1.addMaster(path,'MasterData')
+obj1.addRoomRent(path,'Room Rent')
+obj1.addPreExistingDisease(path,'Pre-Existing Disease')
+obj1.addRechargeOfSI(path,'Recharge of SI')
+obj1.addRationalRating(path,'SQL_R')
+obj1.addCoPay(path,'Co-Pay')
+obj1.addWeightage(path,'Weightage')
+obj1.addProsCons(path,'Pros and Cons')
+obj1.addNCB(path,'NCB')
 obj1.addHealthAndWellness(path,'Health and Wellness')
         
         
