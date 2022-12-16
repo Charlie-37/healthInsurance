@@ -18,8 +18,7 @@ class HealthInsuranceModel():
         #//*  UTF-8 Error handling
         db  = self.dbConnect()
         cr = db.cursor()
-        sql ='''SET client_encoding TO 'utf8';'''
-        cr.execute(sql)
+        cr.execute('''SET client_encoding TO 'utf8';''')
         db.commit()
         db.close()
     
@@ -101,6 +100,7 @@ class HealthInsuranceModel():
                 cr.execute(sql,i)          
             db.commit()
             db.close()
+            return (f_val)
   
         except (Exception, pg.Error) as error:
                 print("Failed to insert record into fetched table", error) 
@@ -108,7 +108,8 @@ class HealthInsuranceModel():
         # for i in f_val:
         #     print(i[0],i[1],i[2])
         # print(f_val)
-        return (f_val)
+        # return (f_val)
+        # return [('')]
     
     # //*------To Find Insurar Name, Insurar Plan, Age Group, Cover Plan ----*//
     def fetched_static_data(self,sr_no):
@@ -212,7 +213,7 @@ class HealthInsuranceModel():
         sql = '''select sr_no,pricing from fetcheddata order by pricing desc'''
         cr.execute(sql)
         data = cr.fetchall()        
-        db.commit()
+        db.commit() 
         db.close()
 
         data_len = len(data)
@@ -246,47 +247,51 @@ class HealthInsuranceModel():
     # //*------------Final Model Data----------------------*//    
     def model_data(self):
         f_data = self.CoverPlan()
-        m_list = []
-        for i in f_data:    
-            static_data = self.fetched_static_data(i[0])
-            sr_no = static_data[4]
-            i_name = static_data[0]
-            i_plan = static_data[1]
-            age_range = static_data[2]
-            cover_plan = static_data[3]
-            
-            brand_existance_rating = self.Brand_Existence_Rating(i[2])
-            product_existance_rating = self.Product_Existence_Rating(i[5])
-            room_rent = self.RoomRent(i[6],i[9])
-            if room_rent == None:
-                room_rent = 'Not_Available'
-            else:
-                room_rent = room_rent[0]
-
-
-            price_rat = self.Price_rating(sr_no)
-            
-            # for i in price_rat:
-            #     print(i)
-            
-            m_dict = {
-                'Sr No' : sr_no,
-                'Insurer_Name' : i_name,
-                'Insurance_Plan' : i_plan,
-                'Age Range' : age_range,
-                'Cover Plan' : cover_plan,
-                'Brand Existance Rating' : brand_existance_rating,
-                'Product_Existence_Rating' : product_existance_rating,
-                'room_rent_rating' : room_rent,
-                'price_rating' : price_rat,
+        
+        if f_data is not None:
+            m_list = []
+            for i in f_data:    
+                static_data = self.fetched_static_data(i[0])
+                sr_no = static_data[4]
+                i_name = static_data[0]
+                i_plan = static_data[1]
+                age_range = static_data[2]
+                cover_plan = static_data[3]
                 
-            }
-            m_list.append(m_dict)
-            
-            
-        for j in m_list:
-            print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['price_rating'])
-            
+                brand_existance_rating = self.Brand_Existence_Rating(i[2])
+                product_existance_rating = self.Product_Existence_Rating(i[5])
+                room_rent = self.RoomRent(i[6],i[9])
+                if room_rent == None:
+                    room_rent = 'Not_Available'
+                else:
+                    room_rent = room_rent[0]
+
+
+                price_rat = self.Price_rating(sr_no)
+                
+                
+                m_dict = {
+                    'Sr No' : sr_no,
+                    'Insurer_Name' : i_name,
+                    'Insurance_Plan' : i_plan,
+                    'Age Range' : age_range,
+                    'Cover Plan' : cover_plan,
+                    'Brand Existance Rating' : brand_existance_rating,
+                    'Product_Existence_Rating' : product_existance_rating,
+                    'room_rent_rating' : room_rent,
+                    'price_rating' : price_rat,
+                    
+                }
+                m_list.append(m_dict)
+                
+                
+            for j in m_list:
+                print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['price_rating'])
+    
+        else:
+            return print("No Value")
+    
+                
 
    
          
