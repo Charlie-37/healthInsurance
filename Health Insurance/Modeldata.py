@@ -204,7 +204,44 @@ class HealthInsuranceModel():
         
         return data
         
+     # //*------------Price Rating Data----------------------*//
+    def Price_rating(self,sr_no):
+        db = self.dbConnect()
+        cr = db.cursor()  
 
+        sql = '''select sr_no,pricing from fetcheddata order by pricing desc'''
+        cr.execute(sql)
+        data = cr.fetchall()        
+        db.commit()
+        db.close()
+
+        data_len = len(data)
+        # print(data_len)
+        for i in range (0,data_len):
+            perct = round(((i+1)/data_len)*100)
+            
+            # print(perct)
+            pr_rat = list(data[i])
+            pr_rat.append(perct)
+
+            
+            if sr_no == pr_rat[0]:
+                if pr_rat[2] < 20 :
+                    return 1
+                elif pr_rat[2] < 40:
+                    return 2
+                elif pr_rat[2] < 60:
+                    return 3
+                elif pr_rat[2] < 80:
+                    return 4
+                elif pr_rat[2] <= 100:
+                   return 5
+                else:
+                    return 'Not Available'
+            
+
+            
+        # return data
     
     # //*------------Final Model Data----------------------*//    
     def model_data(self):
@@ -221,14 +258,16 @@ class HealthInsuranceModel():
             brand_existance_rating = self.Brand_Existence_Rating(i[2])
             product_existance_rating = self.Product_Existence_Rating(i[5])
             room_rent = self.RoomRent(i[6],i[9])
-            
             if room_rent == None:
                 room_rent = 'Not_Available'
             else:
                 room_rent = room_rent[0]
 
 
-
+            price_rat = self.Price_rating(sr_no)
+            
+            # for i in price_rat:
+            #     print(i)
             
             m_dict = {
                 'Sr No' : sr_no,
@@ -239,18 +278,19 @@ class HealthInsuranceModel():
                 'Brand Existance Rating' : brand_existance_rating,
                 'Product_Existence_Rating' : product_existance_rating,
                 'room_rent_rating' : room_rent,
+                'price_rating' : price_rat,
                 
             }
             m_list.append(m_dict)
             
             
         for j in m_list:
-            print(j['Sr No'],j['Product_Existence_Rating'],j['room_rent_rating'])
+            print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['price_rating'])
             
 
    
          
-obj1 = HealthInsuranceModel('10 Lacs',23)
+obj1 = HealthInsuranceModel('5 Lacs',23)
 # obj1.CoverPlan()
 obj1.model_data()
 
