@@ -80,9 +80,16 @@ class HealthInsuranceModel():
              
         # //*flag to manage age range
             flag = False
-            if len(df_age) != 1:         
-                if self.age >= float(df_age[0]) and self.age <= float(df_age[1]):
-                    flag = True
+            # if len(df_age) != 1:         
+            #     if self.age >= float(df_age[0]) and self.age <= float(df_age[1]):
+            #         flag = True
+            # else:            
+            #     if self.age == float(df_age[0]):
+            #         flag = True
+            
+            if len(df_age) != 1 and self.age >= float(df_age[0]) and self.age <= float(df_age[1]):         
+                
+                flag = True
             else:            
                 if self.age == float(df_age[0]):
                     flag = True
@@ -141,15 +148,21 @@ class HealthInsuranceModel():
             year_range = data[i][0].split('-')
             
             # //*if age range is of single year
-            if len(year_range) == 1:
-                if int(year_range[0][1:]) <= brand_existence:
-                    flag = True
-                    rating = data[i][1]
-            elif len(year_range) == 2:                
-                if brand_existence >= int(year_range[0]) and  brand_existence <= int(year_range[1]):
-                    flag = True
-                    # return data[i][1]
-                    rating = data[i][1]
+            # if len(year_range) == 1:
+            #     if int(year_range[0][1:]) <= brand_existence:
+            #         flag = True
+            #         rating = data[i][1]
+            # elif len(year_range) == 2:                
+            #     if brand_existence >= int(year_range[0]) and  brand_existence <= int(year_range[1]):
+            #         flag = True
+            #         rating = data[i][1]
+            
+            if len(year_range) == 1 and int(year_range[0][1:]) <= brand_existence:
+                flag = True
+                rating = data[i][1]
+            elif len(year_range) == 2 and brand_existence >= int(year_range[0]) and  brand_existence <= int(year_range[1]):                
+                flag = True
+                rating = data[i][1]
           
         if flag == True:        
             return rating
@@ -174,15 +187,25 @@ class HealthInsuranceModel():
         for i in range(len(data)):    
             year_range = data[i][0].split('-')
             
-            if len(year_range) == 1:
-                if int(year_range[0][1:]) <= product_existence:
-                    flag = True
-                    rating = data[i][1]
-            elif len(year_range) == 2:                
-                if product_existence >= int(year_range[0]) and  product_existence <= int(year_range[1]):
-                    flag = True
-                    # return data[i][1]
-                    rating = data[i][1]
+            # if len(year_range) == 1:
+            #     if int(year_range[0][1:]) <= product_existence:
+            #         flag = True
+            #         rating = data[i][1]
+            # elif len(year_range) == 2:                
+            #     if product_existence >= int(year_range[0]) and  product_existence <= int(year_range[1]):
+            #         flag = True
+            #         # return data[i][1]
+            #         rating = data[i][1]
+            
+            if len(year_range) == 1 and int(year_range[0][1:]) <= product_existence:
+                
+                flag = True
+                rating = data[i][1]
+            elif len(year_range) == 2 and product_existence >= int(year_range[0]) and  product_existence <= int(year_range[1]):                
+
+                flag = True
+                # return data[i][1]
+                rating = data[i][1]
           
         if flag == True:        
             return rating
@@ -224,7 +247,6 @@ class HealthInsuranceModel():
             # print(perct)
             pr_rat = list(data[i])
             pr_rat.append(perct)
-
             
             if sr_no == pr_rat[0]:
                 if pr_rat[2] < 20 :
@@ -248,48 +270,49 @@ class HealthInsuranceModel():
     def model_data(self):
         f_data = self.CoverPlan()
         
-        if f_data is not None:
-            m_list = []
-            for i in f_data:    
-                static_data = self.fetched_static_data(i[0])
-                sr_no = static_data[4]
-                i_name = static_data[0]
-                i_plan = static_data[1]
-                age_range = static_data[2]
-                cover_plan = static_data[3]
-                
-                brand_existance_rating = self.Brand_Existence_Rating(i[2])
-                product_existance_rating = self.Product_Existence_Rating(i[5])
-                room_rent = self.RoomRent(i[6],i[9])
-                if room_rent == None:
-                    room_rent = 'Not_Available'
-                else:
-                    room_rent = room_rent[0]
-
-
-                price_rat = self.Price_rating(sr_no)
-                
-                
-                m_dict = {
-                    'Sr No' : sr_no,
-                    'Insurer_Name' : i_name,
-                    'Insurance_Plan' : i_plan,
-                    'Age Range' : age_range,
-                    'Cover Plan' : cover_plan,
-                    'Brand Existance Rating' : brand_existance_rating,
-                    'Product_Existence_Rating' : product_existance_rating,
-                    'room_rent_rating' : room_rent,
-                    'price_rating' : price_rat,
-                    
-                }
-                m_list.append(m_dict)
-                
-                
-            for j in m_list:
-                print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['price_rating'])
-    
-        else:
+        if f_data is  None:
             return print("No Value")
+        
+        m_list = []
+        for i in f_data:    
+            static_data = self.fetched_static_data(i[0])
+            sr_no = static_data[4]
+            i_name = static_data[0]
+            i_plan = static_data[1]
+            age_range = static_data[2]
+            cover_plan = static_data[3]
+            
+            brand_existance_rating = self.Brand_Existence_Rating(i[2])
+            product_existance_rating = self.Product_Existence_Rating(i[5])
+            room_rent = self.RoomRent(i[6],i[9])
+            if room_rent == None:
+                room_rent = 'Not_Available'
+            else:
+                room_rent = room_rent[0]
+
+
+            price_rat = self.Price_rating(sr_no)
+            
+            
+            m_dict = {
+                'Sr No' : sr_no,
+                'Insurer_Name' : i_name,
+                'Insurance_Plan' : i_plan,
+                'Age Range' : age_range,
+                'Cover Plan' : cover_plan,
+                'Brand Existance Rating' : brand_existance_rating,
+                'Product_Existence_Rating' : product_existance_rating,
+                'room_rent_rating' : room_rent,
+                'price_rating' : price_rat,
+                
+            }
+            m_list.append(m_dict)
+            print(len(m_list))
+            
+            
+        # for j in m_list:
+        #     print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['price_rating'])
+    
     
                 
 
