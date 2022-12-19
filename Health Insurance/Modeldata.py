@@ -265,11 +265,170 @@ class HealthInsuranceModel():
 
             
         # return data
+        
+     # //*------------No claiM bonus Data----------------------*//
+    def no_claim_bonus(self,keys):
+        db = self.dbConnect()
+        cr = db.cursor() 
+        # cr.execute('Select ratings from ncb where keywords ='+"'"+ keys+"';")
+        cr.execute('Select ratings,keywords from ncb;')
+        data = cr.fetchall()
+        db.commit()
+        db.close()
+        
+        for i in range(len(data)):
+            # print(data[i][1])
+            if data[i][1].lower() == str(keys).lower():
+                return data[i][0]
+            
+        return 'Not_Available'
     
+    # //*------------Recharge Of Si Data----------------------*//
+    def recharge_of_si(self,sr_no,keys):
+        db = self.dbConnect()
+        cr = db.cursor() 
+        keys = str(keys).strip()
+        cr.execute('Select ratings,keywords from recharge_of_si;')
+        data = cr.fetchall()
+        db.commit()
+        db.close()
+        
+        for i in range(len(data)):
+            if data[i][1].lower() == keys.lower():
+                return data[i][0]  
+        return 'Not_Available'
+    
+    # //*---------------Pre_Existing Data-------------------*//
+    def pre_existing_disease(self,sr_no,keys):
+        db = self.dbConnect()
+        cr = db.cursor() 
+        keys = str(keys).strip()
+        cr.execute('Select ratings,keywords from pre_existing_disease;')
+        data = cr.fetchall()
+        # print(data)
+        db.commit()
+        db.close()
+        
+        for i in range(len(data)):
+            if data[i][1].lower() == keys.lower():
+                # print(data[i][0])
+                return data[i][0] 
+
+        return 'Not_Available'
+    
+    # //*---------------CO PAY Data-------------------*//
+    def co_pay_ranking(self,sr_no,keys):
+        db = self.dbConnect()
+        cr = db.cursor() 
+        keys = str(keys).strip()
+        cr.execute('Select ratings,keywords from co_pay')
+        data = cr.fetchall()
+        # print(data)
+        db.commit()
+        db.close()
+        
+        for i in range(len(data)):
+            if data[i][1].lower() == keys.lower():
+                return data[i][0] 
+
+        return 'Not_Available'
+    
+        # //*---------------Health and Wellness-------------------*//
+    def health_wellness(self,sr_no,uniq_code):
+        db = self.dbConnect()
+        cr = db.cursor() 
+        tpl = (uniq_code.strip(),)
+        sql = '''Select ratings from health_wellness where unique_code_plan = %s ;'''
+        cr.execute(sql,tpl)
+        data = cr.fetchone()
+        db.commit()
+        db.close()
+        
+        if data:
+            return data[0]
+        else:
+            return 'Not_Available'
+        
+      # //*------------Claim Settlement Ratio Rating Data----------------------*//
+    def csr_rating(self,sr_no):
+        db = self.dbConnect()
+        cr = db.cursor()  
+
+        sql = '''select sr_no,"Claims_Settlement_Ratio (%)"  from fetcheddata order by "Claims_Settlement_Ratio (%)" desc'''
+        cr.execute(sql)
+        data = cr.fetchall()  
+        
+        sql2 = '''select claims_settled, rating from rational_rating ;'''
+        cr.execute(sql2)
+        csr = cr.fetchall() 
+        # print(data) 
+              
+        db.commit() 
+        db.close()
+
+        data_len = len(data)
+        
+        # print(data_len)
+        
+        # def rnk(self,perct):
+        #     pass
+        # for k in range (0,data_len):
+        for i in data:
+            print(type(i[1]))
+            # perct = round(((i+1)/data_len)*100)
+            
+            # print(perct)
+            # pr_rat = list(data[i])
+            # pr_rat.append(perct)
+            
+            for j in csr:
+                yer_range = j[0].split('-')
+                # print(yer_range)
+                # print(perct,yer_range)
+                if len(yer_range) == 1 and (yer_range[0][0]) == '<' and int(yer_range[0][1:]) >= i[1]:
+                    return j[1] 
+                elif len(yer_range) == 1 and (yer_range[0][0]) == '>' and int(yer_range[0][1:]) <= i[1]:
+                    return j[1]
+                elif len(yer_range) == 2 and i[1] >= int(yer_range[0]) and  i[1] <= int(yer_range[1]): 
+                     return j[1]
+                else:
+                    return 'Not_Available' 
+                
+                    
+                
+            #     if len(year_range) == 1 and int(year_range[0][1:]) <= product_existence:
+                    
+            #     flag = True
+            #     rating = data[i][1]
+            # elif len(year_range) == 2 and product_existence >= int(year_range[0]) and  product_existence <= int(year_range[1]):                
+
+            #     flag = True
+            #     # return data[i][1]
+            #     rating = data[i][1]
+                # print(range)
+            
+            
+            
+            
+            
+            # if sr_no == pr_rat[0]:
+            #     if pr_rat[2] < 20 :
+            #         return 1
+            #     elif pr_rat[2] < 40:
+            #         return 2
+            #     elif pr_rat[2] < 60:
+            #         return 3
+            #     elif pr_rat[2] < 80:
+            #         return 4
+            #     elif pr_rat[2] <= 100:
+            #        return 5
+            #     else:
+            #         return 'Not Available'
+        
+
     # //*------------Final Model Data----------------------*//    
     def model_data(self):
         f_data = self.CoverPlan()
-        
         if f_data is  None:
             return print("No Value")
         
@@ -292,6 +451,13 @@ class HealthInsuranceModel():
 
 
             price_rat = self.Price_rating(sr_no)
+            ncb = self.no_claim_bonus(i[10])
+            recharge_of_si = self.recharge_of_si(sr_no,i[11])
+            pre_existing_disease = self.pre_existing_disease(sr_no,i[12])
+            co_pay =  self.co_pay_ranking(sr_no,i[13])
+            health_wellness = self.health_wellness(sr_no,i[4])
+            csr_rating = self.csr_rating(sr_no)
+
             
             
             m_dict = {
@@ -304,17 +470,26 @@ class HealthInsuranceModel():
                 'Product_Existence_Rating' : product_existance_rating,
                 'room_rent_rating' : room_rent,
                 'price_rating' : price_rat,
+                'ncb_rating' : ncb,
+                'recharge_of_si' : recharge_of_si,
+                'pre_existing_disease' : pre_existing_disease,
+                'co_pay' : co_pay,
+                'health_wellness' : health_wellness,
+                'csr_rating' : csr_rating,
+                
+                
                 
             }
             m_list.append(m_dict)
-            print(len(m_list))
+            # print(len(m_list))
+            # print(m_dict)
             
-            
-        # for j in m_list:
-        #     print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['price_rating'])
+        for j in m_list:
+            print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['csr_rating'])
     
     
                 
+
 
    
          
