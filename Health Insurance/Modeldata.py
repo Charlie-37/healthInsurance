@@ -361,7 +361,7 @@ class HealthInsuranceModel():
         sql2 = '''select claims_settled, rating from rational_rating ;'''
         cr.execute(sql2)
         csr = cr.fetchall() 
-        # print(data) 
+        print(data) 
               
         db.commit() 
         db.close()
@@ -374,7 +374,6 @@ class HealthInsuranceModel():
         #     pass
         # for k in range (0,data_len):
         for i in data:
-            print(type(i[1]))
             # perct = round(((i+1)/data_len)*100)
             
             # print(perct)
@@ -382,6 +381,7 @@ class HealthInsuranceModel():
             # pr_rat.append(perct)
             
             for j in csr:
+                print(i[1])
                 yer_range = j[0].split('-')
                 # print(yer_range)
                 # print(perct,yer_range)
