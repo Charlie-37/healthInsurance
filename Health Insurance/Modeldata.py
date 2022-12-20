@@ -1,6 +1,7 @@
 import pandas as pd
 import openpyxl as px
 import psycopg2 as pg
+import decimal
 
 class HealthInsuranceModel():
     def __init__(self,cp,age):
@@ -296,7 +297,7 @@ class HealthInsuranceModel():
         for i in range(len(data)):
             if data[i][1].lower() == keys.lower():
                 return data[i][0]  
-        return 'Not_Available'
+        return 1
     
     # //*---------------Pre_Existing Data-------------------*//
     def pre_existing_disease(self,sr_no,keys):
@@ -354,78 +355,150 @@ class HealthInsuranceModel():
         db = self.dbConnect()
         cr = db.cursor()  
 
-        sql = '''select sr_no,"Claims_Settlement_Ratio (%)"  from fetcheddata order by "Claims_Settlement_Ratio (%)" desc'''
+        sql = ''' select sr_no,"Claims_Settlement_Ratio (%)" , PERCENT_Rank() Over (order by "Claims_Settlement_Ratio (%)" desc)*100 from fetcheddata;'''
         cr.execute(sql)
         data = cr.fetchall()  
+        db.commit()
+        db.close()
+        percent = 0
         
-        sql2 = '''select claims_settled, rating from rational_rating ;'''
-        cr.execute(sql2)
-        csr = cr.fetchall() 
-        print(data) 
-              
-        db.commit() 
+        for i in data:
+            if sr_no == i[0]:
+                percent = round(i[-1])
+  
+        if percent < 20 :
+            return 5
+        elif percent < 40 and percent >= 20:
+            return 4
+        elif percent < 60 and percent <= 40:
+            return 3
+        elif percent < 80 and percent >= 60:
+            return 2
+        elif percent <= 100 and percent >= 80:
+            return 1
+        else:
+            return 'Not Available'
+      
+     # //*------------ICR Rating----------------------*//  
+    def ICR_Rating(self,sr_no,icr_percet):
+        db = self.dbConnect()
+        cr = db.cursor()  
+        sql = '''select incurred_claim_ratio, rating from rational_rating;'''
+        cr.execute(sql)
+        data = cr.fetchall()  
+        db.commit()
+        db.close()
+        
+        # print(data)
+        
+        for i in range(len(data)):
+            # print(data[i][0])
+            perct_range = data[i][0].split('-')
+            # print(len(perct_range))
+            if len(perct_range) == 1 and perct_range[0][0] == '>' and int(perct_range[0][1:]) <=  icr_percet:
+                return data[i][1]
+            elif len(perct_range) == 1 and perct_range[0][0] == '<' and int(perct_range[0][1:]) >=  icr_percet:
+                return data[i][1]
+            elif len(perct_range) == 1 and perct_range[0][0] == '=' and int(perct_range[0][1:]) ==  icr_percet:
+                return data[i][1]
+            elif len(perct_range) == 2 and int(perct_range[0]) <= icr_percet  and int(perct_range[1]) >= icr_percet:
+                return data[i][1]
+    
+                
+     # //*------------AOC Rating----------------------*//  
+    def aoc_rating(self,sr_no,aoc_percet):
+        db = self.dbConnect()
+        cr = db.cursor()  
+        sql = '''select "Ageing_of_Claim (%)", rating from rational_rating;'''
+        cr.execute(sql)
+        data = cr.fetchall()  
+        db.commit()
         db.close()
 
-        data_len = len(data)
         
-        # print(data_len)
-        
-        # def rnk(self,perct):
-        #     pass
-        # for k in range (0,data_len):
-        for i in data:
-            # perct = round(((i+1)/data_len)*100)
-            
-            # print(perct)
-            # pr_rat = list(data[i])
-            # pr_rat.append(perct)
-            
-            for j in csr:
-                print(i[1])
-                yer_range = j[0].split('-')
-                # print(yer_range)
-                # print(perct,yer_range)
-                if len(yer_range) == 1 and (yer_range[0][0]) == '<' and int(yer_range[0][1:]) >= i[1]:
-                    return j[1] 
-                elif len(yer_range) == 1 and (yer_range[0][0]) == '>' and int(yer_range[0][1:]) <= i[1]:
-                    return j[1]
-                elif len(yer_range) == 2 and i[1] >= int(yer_range[0]) and  i[1] <= int(yer_range[1]): 
-                     return j[1]
-                else:
-                    return 'Not_Available' 
-                
-                    
-                
-            #     if len(year_range) == 1 and int(year_range[0][1:]) <= product_existence:
-                    
-            #     flag = True
-            #     rating = data[i][1]
-            # elif len(year_range) == 2 and product_existence >= int(year_range[0]) and  product_existence <= int(year_range[1]):                
+        for i in range(len(data)):
+            perct_range = data[i][0].split('-')
+            if len(perct_range) == 1 and perct_range[0][0] == '>' and int(perct_range[0][1:]) <=  aoc_percet:
+                return data[i][1]
+            elif len(perct_range) == 1 and perct_range[0][0] == '<' and int(perct_range[0][1:]) >=  aoc_percet:
+                return data[i][1]
+            elif len(perct_range) == 1 and perct_range[0][0] == '=' and int(perct_range[0][1:]) ==  aoc_percet:
+                return data[i][1]
+            elif len(perct_range) == 2 and int(perct_range[0]) <= aoc_percet  and int(perct_range[1]) >= aoc_percet:
+                return data[i][1]
 
-            #     flag = True
-            #     # return data[i][1]
-            #     rating = data[i][1]
-                # print(range)
-            
-            
-            
-            
-            
-            # if sr_no == pr_rat[0]:
-            #     if pr_rat[2] < 20 :
-            #         return 1
-            #     elif pr_rat[2] < 40:
-            #         return 2
-            #     elif pr_rat[2] < 60:
-            #         return 3
-            #     elif pr_rat[2] < 80:
-            #         return 4
-            #     elif pr_rat[2] <= 100:
-            #        return 5
-            #     else:
-            #         return 'Not Available'
+         # //*------------Network Hospital Rating----------------------*//  
+    def network_hospital(self,sr_no,nw_value):
+        db = self.dbConnect()
+        cr = db.cursor()  
+        sql = '''select network_hospitals, rating from rational_rating;'''
+        cr.execute(sql)
+        data = cr.fetchall()  
+        db.commit()
+        db.close()
+        # print(data)
         
-
+        # print(data)
+        
+        for i in range(len(data)):
+            # print(type(nw_value))
+            # print(data[i][0])
+            perct_range = data[i][0].split('-')
+            
+            if nw_value == 'Not_Available':
+                return 1
+            # print(len(perct_range))
+            if len(perct_range) == 1 and perct_range[0][0] == '>' and int(perct_range[0][1:]) <=  float(nw_value):
+                return data[i][1]
+            elif len(perct_range) == 1 and perct_range[0][0] == '<' and int(perct_range[0][1:]) >=  float(nw_value):
+                return data[i][1]
+            elif len(perct_range) == 1 and perct_range[0][0] == '=' and int(perct_range[0][1:]) ==  float(nw_value):
+                return data[i][1]
+            elif len(perct_range) == 2 and int(perct_range[0]) <= float(nw_value)  and int(perct_range[1]) >= float(nw_value):
+                
+                return data[i][1]
+            
+            
+    # //*------------avg_product_features----------------------*// 
+    def avg_product_features(self,room_rent,ncb,recharge_of_si,pre_existing_disease,co_pay,health_wellness):
+        
+        db = self.dbConnect()
+        cr = db.cursor()  
+        sql = '''select "Weightage (%)" from weightage where parameters IN ('Room Rent', 'NCB','Recharge of SI','Pre-Existing Diseases','Co-pay','Health and Wellness');'''
+        cr.execute(sql)
+        data = cr.fetchall()  
+        db.commit()
+        db.close()
+        # print(type(data[0][0]))
+        # print(type(ncb))
+        # print(room_rent,ncb,recharge_of_si,pre_existing_disease,co_pay,health_wellness)
+        top = ((data[0][0] * decimal.Decimal(room_rent))+(data[1][0] * decimal.Decimal(ncb))+ (data[2][0] * decimal.Decimal(recharge_of_si))+(data[3][0] * decimal.Decimal(pre_existing_disease))+(data[4][0] * decimal.Decimal(co_pay)) + (data[5][0] * decimal.Decimal(health_wellness)))
+        bottom = ((data[0][0])+(data[1][0])+(data[2][0])+(data[3][0])+(data[4][0])+(data[5][0]))
+        
+        val = top/bottom
+        return float('{:.1f}'.format(val))
+        # return round(val)
+    
+     # //*------------avg_product_features----------------------*// 
+    def avg_CSE_features(self,csr_rating,icr_rating,aoc_rating,network_hospital):
+        
+        db = self.dbConnect()
+        cr = db.cursor()  
+        sql = '''select "Weightage (%)" from weightage where parameters IN ('Claim Settlement Ratio','Incurred Claim Ratio','Age Analysis of No. of Claims Paid(%)<3months','Network Hospitals');'''
+        cr.execute(sql)
+        data = cr.fetchall()  
+        db.commit()
+        db.close()
+        # print(type(data[0][0]))
+        # print(type(ncb))
+        print(csr_rating,icr_rating,aoc_rating,network_hospital)
+        top = ((data[0][0] * decimal.Decimal(csr_rating))+(data[1][0] * decimal.Decimal(icr_rating))+ (data[2][0] * decimal.Decimal(aoc_rating))+(data[3][0] * decimal.Decimal(network_hospital)))
+        bottom = ((data[0][0])+(data[1][0])+(data[2][0])+(data[3][0]))
+        
+        val = top/bottom
+        return float('{:.1f}'.format(val))
+        # return round(val)
+        
     # //*------------Final Model Data----------------------*//    
     def model_data(self):
         f_data = self.CoverPlan()
@@ -445,7 +518,7 @@ class HealthInsuranceModel():
             product_existance_rating = self.Product_Existence_Rating(i[5])
             room_rent = self.RoomRent(i[6],i[9])
             if room_rent == None:
-                room_rent = 'Not_Available'
+                room_rent = 5
             else:
                 room_rent = room_rent[0]
 
@@ -457,6 +530,15 @@ class HealthInsuranceModel():
             co_pay =  self.co_pay_ranking(sr_no,i[13])
             health_wellness = self.health_wellness(sr_no,i[4])
             csr_rating = self.csr_rating(sr_no)
+            icr_rating = self.ICR_Rating(sr_no,i[16])
+            aoc_rating = self.aoc_rating(sr_no,i[17])
+            network_hospital = self.network_hospital(sr_no,i[18])
+            avg_brand_existance = brand_existance_rating
+            avg_product_existance = product_existance_rating
+            avg_price_rating = price_rat
+            avg_product_features = self.avg_product_features(room_rent,ncb,recharge_of_si,pre_existing_disease,co_pay,health_wellness)
+            avg_CSE_features = self.avg_CSE_features(csr_rating,icr_rating,aoc_rating,network_hospital)
+            print(i_plan,i[18],avg_CSE_features)
 
             
             
@@ -476,6 +558,11 @@ class HealthInsuranceModel():
                 'co_pay' : co_pay,
                 'health_wellness' : health_wellness,
                 'csr_rating' : csr_rating,
+                'icr_rating' : icr_rating,
+                'aoc_rating' : aoc_rating,
+                'network_hospital' : network_hospital,
+                'avg_brand_existance' : avg_brand_existance,
+                'avg_product_existance' : avg_product_existance,
                 
                 
                 
@@ -484,8 +571,8 @@ class HealthInsuranceModel():
             # print(len(m_list))
             # print(m_dict)
             
-        for j in m_list:
-            print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['csr_rating'])
+        # for j in m_list:
+        #     print(j['Sr No'],j['Insurer_Name'],j['room_rent_rating'],j['icr_rating'])
     
     
                 
