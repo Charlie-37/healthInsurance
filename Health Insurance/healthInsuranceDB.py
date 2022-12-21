@@ -198,10 +198,10 @@ class HealthInsuranceDB():
         cr = db.cursor()
         
         sql ='''CREATE TABLE pre_existing_disease(  
-          SR_No integer,
+          SR_No Integer,
           Must_Look_Features Varchar,
           Keywords Varchar,
-          Ratings integer
+          Ratings Integer
         )'''
         cr.execute(sql)
         print("Table created successfully........")
@@ -215,9 +215,9 @@ class HealthInsuranceDB():
         db  = self.dbConnect()
         cr = db.cursor()
         for i in df_list:
-          
-            sql = '''Insert into pre_existing_disease values(%s,%s,%s,%s)'''
-            cr.execute(sql,i)
+            # sql = '''Insert into pre_existing_disease values(%s,%s,%s,%s)'''
+            # cr.execute(sql,i)
+            cr.execute('Insert into pre_existing_disease values%s'%str(i))
         db.commit()
         db.close()
         
@@ -255,8 +255,10 @@ class HealthInsuranceDB():
         db  = self.dbConnect()
         cr = db.cursor()
         for i in df_list:
+            # print(i)
             sql = '''Insert into recharge_of_si values(%s,%s,%s,%s)'''
             cr.execute(sql,i)
+            # cr.execute('Insert into pre_existing_disease values%s'%str(i))
         db.commit()
         db.close()
         
@@ -307,6 +309,7 @@ class HealthInsuranceDB():
         db  = self.dbConnect()
         cr = db.cursor()
         for i in df_list:
+            # print(i)
             sql = '''Insert into rational_rating values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''
             cr.execute(sql,i)
         db.commit()

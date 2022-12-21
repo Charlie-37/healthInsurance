@@ -2,6 +2,8 @@ import pandas as pd
 import openpyxl as px
 import psycopg2 as pg
 import decimal
+from sqlalchemy import create_engine
+
 
 class HealthInsuranceModel():
     def __init__(self,cp,age):
@@ -14,6 +16,14 @@ class HealthInsuranceModel():
         database="healthinsurance", user='postgres', password='4658', host='localhost', port= '2450')
         return conn
     
+    # //*  Database Engine Creaion
+    def SQLengine(self):
+        engine_string = "postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}".format(user = 'postgres',password = '4658', host = 'localhost',port = '2450', database = 'healthinsurance',)
+        engine = create_engine(engine_string)
+        return engine
+        
+        
+        
     # //* Function to Handel UTF-8 encoded error
     def UTF8_Error_Handling(self):
         #//*  UTF-8 Error handling
@@ -197,7 +207,6 @@ class HealthInsuranceModel():
             #         flag = True
             #         # return data[i][1]
             #         rating = data[i][1]
-            
             if len(year_range) == 1 and int(year_range[0][1:]) <= product_existence:
                 
                 flag = True
@@ -277,12 +286,11 @@ class HealthInsuranceModel():
         db.commit()
         db.close()
         
-        for i in range(len(data)):
-            # print(data[i][1])
+        for i in range(len(data)): 
             if data[i][1].lower() == str(keys).lower():
                 return data[i][0]
             
-        return 'Not_Available'
+        return 1
     
     # //*------------Recharge Of Si Data----------------------*//
     def recharge_of_si(self,sr_no,keys):
@@ -298,6 +306,7 @@ class HealthInsuranceModel():
             if data[i][1].lower() == keys.lower():
                 return data[i][0]  
         return 1
+    
     
     # //*---------------Pre_Existing Data-------------------*//
     def pre_existing_disease(self,sr_no,keys):
@@ -315,7 +324,7 @@ class HealthInsuranceModel():
                 # print(data[i][0])
                 return data[i][0] 
 
-        return 'Not_Available'
+        return 1
     
     # //*---------------CO PAY Data-------------------*//
     def co_pay_ranking(self,sr_no,keys):
@@ -332,14 +341,15 @@ class HealthInsuranceModel():
             if data[i][1].lower() == keys.lower():
                 return data[i][0] 
 
-        return 'Not_Available'
+        return 1
     
         # //*---------------Health and Wellness-------------------*//
     def health_wellness(self,sr_no,uniq_code):
         db = self.dbConnect()
         cr = db.cursor() 
-        tpl = (uniq_code.strip(),)
-        sql = '''Select ratings from health_wellness where unique_code_plan = %s ;'''
+        uniq_code = uniq_code.strip()
+        tpl = (uniq_code,)
+        sql = '''Select ratings from health_wellness where unique_code_plan=%s;'''
         cr.execute(sql,tpl)
         data = cr.fetchone()
         db.commit()
@@ -348,37 +358,37 @@ class HealthInsuranceModel():
         if data:
             return data[0]
         else:
-            return 'Not_Available'
+            return 1
         
       # //*------------Claim Settlement Ratio Rating Data----------------------*//
     def csr_rating(self,sr_no):
         db = self.dbConnect()
-        cr = db.cursor()  
 
-        sql = ''' select sr_no,"Claims_Settlement_Ratio (%)" , PERCENT_Rank() Over (order by "Claims_Settlement_Ratio (%)" desc)*100 from fetcheddata;'''
-        cr.execute(sql)
-        data = cr.fetchall()  
-        db.commit()
-        db.close()
-        percent = 0
+        engine = self.SQLengine()
+        df = pd.read_sql_query('select sr_no, "Claims_Settlement_Ratio (%%)" as csr from fetcheddata;',engine)
         
-        for i in data:
-            if sr_no == i[0]:
-                percent = round(i[-1])
-  
-        if percent < 20 :
-            return 5
-        elif percent < 40 and percent >= 20:
-            return 4
-        elif percent < 60 and percent <= 40:
-            return 3
-        elif percent < 80 and percent >= 60:
-            return 2
-        elif percent <= 100 and percent >= 80:
+        df = df.sort_values(by=['csr'],ascending=False)
+        # print(df)
+        df['per'] = round(df.csr.rank(method = 'min', pct=True,ascending=False)*100)
+        
+        percentile = 0
+        for index,row in df.iterrows():
+            if row['sr_no'] == sr_no:
+                percentile=row['per']
+               
+        if percentile < 20 :
             return 1
-        else:
-            return 'Not Available'
-      
+        elif percentile < 40:
+            return 2
+        elif percentile < 60:
+            return 3
+        elif percentile < 80:
+            return 4
+        elif percentile <= 100:
+            return 5
+        
+        
+        # print(df)
      # //*------------ICR Rating----------------------*//  
     def ICR_Rating(self,sr_no,icr_percet):
         db = self.dbConnect()
@@ -471,9 +481,9 @@ class HealthInsuranceModel():
         db.close()
         # print(type(data[0][0]))
         # print(type(ncb))
-        # print(room_rent,ncb,recharge_of_si,pre_existing_disease,co_pay,health_wellness)
-        top = ((data[0][0] * decimal.Decimal(room_rent))+(data[1][0] * decimal.Decimal(ncb))+ (data[2][0] * decimal.Decimal(recharge_of_si))+(data[3][0] * decimal.Decimal(pre_existing_disease))+(data[4][0] * decimal.Decimal(co_pay)) + (data[5][0] * decimal.Decimal(health_wellness)))
-        bottom = ((data[0][0])+(data[1][0])+(data[2][0])+(data[3][0])+(data[4][0])+(data[5][0]))
+        print(room_rent,ncb,recharge_of_si,pre_existing_disease,co_pay,health_wellness)
+        top = ((float(data[0][0]) * float(room_rent))+(float(data[1][0]) * float(ncb))+ (float(data[2][0]) * float(recharge_of_si))+(float(data[3][0]) * float(pre_existing_disease))+(float(data[4][0]) * float(co_pay)) + (float(data[5][0]) * float(health_wellness)))
+        bottom = ((float(data[0][0]))+float((data[1][0]))+float(data[2][0])+float(data[3][0])+float(data[4][0])+float(data[5][0]))
         
         val = top/bottom
         return float('{:.1f}'.format(val))
@@ -489,11 +499,13 @@ class HealthInsuranceModel():
         data = cr.fetchall()  
         db.commit()
         db.close()
-        # print(type(data[0][0]))
-        # print(type(ncb))
-        print(csr_rating,icr_rating,aoc_rating,network_hospital)
-        top = ((data[0][0] * decimal.Decimal(csr_rating))+(data[1][0] * decimal.Decimal(icr_rating))+ (data[2][0] * decimal.Decimal(aoc_rating))+(data[3][0] * decimal.Decimal(network_hospital)))
-        bottom = ((data[0][0])+(data[1][0])+(data[2][0])+(data[3][0]))
+
+        # print(csr_rating,icr_rating,aoc_rating,network_hospital)
+        # top = ((data[0][0] * decimal.Decimal(csr_rating))+(data[1][0] * decimal.Decimal(icr_rating))+ (data[2][0] * decimal.Decimal(aoc_rating))+(data[3][0] * decimal.Decimal(network_hospital)))
+        # bottom = ((data[0][0])+(data[1][0])+(data[2][0])+(data[3][0]))
+        
+        top = ((float(data[0][0]) * float(csr_rating))+(float(data[1][0]) * float(icr_rating))+ (float(data[2][0]) * float(aoc_rating))+(float(data[3][0]) * float(network_hospital)))
+        bottom = ((float(data[0][0]))+(float(data[1][0]))+(float(data[2][0]))+(float(data[3][0])))
         
         val = top/bottom
         return float('{:.1f}'.format(val))
@@ -538,6 +550,7 @@ class HealthInsuranceModel():
             avg_price_rating = price_rat
             avg_product_features = self.avg_product_features(room_rent,ncb,recharge_of_si,pre_existing_disease,co_pay,health_wellness)
             avg_CSE_features = self.avg_CSE_features(csr_rating,icr_rating,aoc_rating,network_hospital)
+            # print(sr_no,i_plan,csr_rating)
             print(i_plan,i[18],avg_CSE_features)
 
             
@@ -580,7 +593,7 @@ class HealthInsuranceModel():
 
    
          
-obj1 = HealthInsuranceModel('5 Lacs',23)
+obj1 = HealthInsuranceModel('20 Lacs',40)
 # obj1.CoverPlan()
 obj1.model_data()
 
